@@ -264,6 +264,3 @@ A: That depends on your implementation. If you add persistence, document retenti
 
 ---
 
-If you want, I can:
-- Commit this README to the repository (I can prepare the exact git patch or call the GitHub API if you want me to push).
-- Generate a companion CONTRIBUTING.md, CODE_OF_CONDUCT.md, or example .env.example file tailored to the repository's actual implementation files — point me to the main app file(s) or tell me which stack the project uses.
