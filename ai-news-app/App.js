@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, SafeAreaView, StatusBar, Image, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, Text, View, FlatList, SafeAreaView, StatusBar, Image, TouchableOpacity, Platform, ImageBackground } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 const MOCK_NEWS = [
   {
@@ -49,6 +50,8 @@ const MOCK_NEWS = [
   },
 ];
 
+const BACKGROUND_IMAGE = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop';
+
 const CategoryBadge = ({ category }) => (
   <View style={styles.badgeContainer}>
     <Text style={styles.badgeText}>{category}</Text>
@@ -56,31 +59,35 @@ const CategoryBadge = ({ category }) => (
 );
 
 const FeaturedNewsItem = ({ item }) => (
-  <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
-    <Image source={{ uri: item.imageUrl }} style={styles.featuredImage} resizeMode="cover" />
-    <View style={styles.featuredOverlay}>
-      <CategoryBadge category={item.category} />
-      <Text style={styles.featuredTitle}>{item.title}</Text>
-      <View style={styles.metaContainer}>
-        <Text style={styles.featuredSource}>{item.source}</Text>
-        <Text style={styles.featuredDate}>• {item.date}</Text>
+  <TouchableOpacity activeOpacity={0.9} style={styles.featuredTouch}>
+    <BlurView intensity={30} tint="dark" style={styles.featuredCard}>
+      <Image source={{ uri: item.imageUrl }} style={styles.featuredImage} resizeMode="cover" />
+      <View style={styles.featuredOverlay}>
+        <CategoryBadge category={item.category} />
+        <Text style={styles.featuredTitle}>{item.title}</Text>
+        <View style={styles.metaContainer}>
+          <Text style={styles.featuredSource}>{item.source}</Text>
+          <Text style={styles.featuredDate}>• {item.date}</Text>
+        </View>
       </View>
-    </View>
+    </BlurView>
   </TouchableOpacity>
 );
 
 const NewsItem = ({ item }) => (
-  <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-    <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
-    <View style={styles.textContainer}>
-      <CategoryBadge category={item.category} />
-      <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-      <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-      <View style={styles.metaContainer}>
-        <Text style={styles.source}>{item.source}</Text>
-        <Text style={styles.date}>• {item.date}</Text>
+  <TouchableOpacity activeOpacity={0.8} style={styles.itemTouch}>
+    <BlurView intensity={20} tint="light" style={styles.card}>
+      <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+      <View style={styles.textContainer}>
+        <CategoryBadge category={item.category} />
+        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+        <View style={styles.metaContainer}>
+          <Text style={styles.source}>{item.source}</Text>
+          <Text style={styles.date}>• {item.date}</Text>
+        </View>
       </View>
-    </View>
+    </BlurView>
   </TouchableOpacity>
 );
 
@@ -95,50 +102,60 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>AI Nexus</Text>
-        <Text style={styles.headerSubtitle}>Latest Intelligence</Text>
-      </View>
-      <FlatList
-        data={news}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+    <ImageBackground source={{ uri: BACKGROUND_IMAGE }} style={styles.background} resizeMode="cover">
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+        {/* Glass Header */}
+        <BlurView intensity={50} tint="dark" style={styles.header}>
+          <Text style={styles.headerTitle}>AI Nexus</Text>
+          <Text style={styles.headerSubtitle}>Latest Intelligence</Text>
+        </BlurView>
+
+        <FlatList
+          data={news}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     padding: 20,
-    backgroundColor: '#1a1a2e',
+    // Removed solid background
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    overflow: 'hidden', // Essential for BlurView to respect border radius on some platforms
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: '#fff',
     letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#a0a0b0',
+    color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 4,
     fontWeight: '500',
   },
@@ -148,44 +165,49 @@ const styles = StyleSheet.create({
   },
   // Badge Styles
   badgeContainer: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   badgeText: {
-    color: '#007AFF',
+    color: '#fff',
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   // Featured Card Styles
+  featuredTouch: {
+    marginBottom: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   featuredCard: {
     height: 250,
     borderRadius: 16,
-    marginBottom: 24,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   featuredImage: {
     width: '100%',
     height: '100%',
-    opacity: 0.7,
+    opacity: 0.8,
+    position: 'absolute',
   },
   featuredOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
     padding: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.3)', // Slight tint on top of image
   },
   featuredTitle: {
     fontSize: 22,
@@ -193,8 +215,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   featuredSource: {
     color: '#e0e0e0',
@@ -207,18 +229,22 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   // Standard Card Styles
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+  itemTouch: {
     marginBottom: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  card: {
+    flexDirection: 'row',
     height: 120,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)', // Glassy white
   },
   image: {
     width: 120,
@@ -238,7 +264,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 12,
-    color: '#666',
+    color: '#333',
     lineHeight: 16,
     marginBottom: 6,
   },
@@ -248,12 +274,12 @@ const styles = StyleSheet.create({
   },
   source: {
     fontSize: 11,
-    color: '#666',
+    color: '#333',
     fontWeight: '600',
   },
   date: {
     fontSize: 11,
-    color: '#999',
+    color: '#555',
     marginLeft: 4,
   },
 });
